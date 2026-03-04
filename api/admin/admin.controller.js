@@ -1,10 +1,22 @@
 const sendMail = require("../Util/sendMail");
+const bcrypt = require("bcrypt");
 const {
   insertAlumni,
   fetchAllAlumni,
   fetchAllAlumniById,
   updateAlumni,
   InactiveAlumini,
+  InsertAluminMaster,
+  IsEmailSend,
+  insertdepDetail,
+  getAllDepartmetnDetail,
+  upatedepDetail,
+  getAllProgramDetail,
+  updateProgramDetail,
+  insertProgramDetail,
+  insertDesignation,
+  getAllDesignation,
+  updateDesignation,
 } = require("./admin.service");
 
 module.exports = {
@@ -259,9 +271,10 @@ module.exports = {
     });
   },
   sendAluminimail: async (req, res) => {
-    const { alum_name, email, password, send_email, alum_id } = req.body;
+    const data = req.body;
+    const { alum_name, email, password, send_email, alum_id } = data;
 
-    if (!email || !password || !alum_name||!alum_id) {
+    if (!email || !password || !alum_name || !alum_id) {
       return res.status(400).json({
         success: 0,
         message: "Missing required fields",
@@ -275,7 +288,6 @@ module.exports = {
         message: "Mail sending skipped",
       });
     }
-    
 
     try {
       const htmlTemplate = `
@@ -304,9 +316,40 @@ module.exports = {
         });
       }
 
-      return res.status(200).json({
-        success: 1,
-        message: "Email sent successfully",
+      IsEmailSend(data, (error, result) => {
+        if (error) {
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong.Database Error",
+          });
+        }
+
+        bcrypt.hash(password, 10, (err, hashedPassword) => {
+          if (err) {
+            console.error("bcrypt hash error:", err);
+            return res.status(500).json({
+              success: 0,
+              message: "Something went wrong",
+            });
+          }
+          const aluminDetail = {
+            alum_name,
+            alum_id,
+            password: hashedPassword,
+          };
+          InsertAluminMaster(aluminDetail, (error, result) => {
+            if (error) {
+              return res.status(200).json({
+                success: 0,
+                message: "Something went wrong.Database Error",
+              });
+            }
+            return res.status(200).json({
+              success: 1,
+              message: "Email sent successfully",
+            });
+          });
+        });
       });
     } catch (error) {
       console.error("Mail Error:", error);
@@ -315,5 +358,203 @@ module.exports = {
         message: "Server error while sending mail",
       });
     }
+  },
+  insertDepartmentDetail: (req, res) => {
+    try {
+      const data = req.body;
+      // Service call (pure callback style)
+      insertdepDetail(data, (error, result) => {
+        if (error) {
+          console.error("Insert Department Detail Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Inserted successfully",
+          alum_id: result.alum_id,
+        });
+      });
+    } catch (error) {
+      console.error("Insert Department Detail Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  updateDepdetail: (req, res) => {
+    try {
+      const data = req.body;
+      // Service call (pure callback style)
+      upatedepDetail(data, (error, result) => {
+        if (error) {
+          console.error("Insert Department Detail Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Inserted successfully",
+          alum_id: result.alum_id,
+        });
+      });
+    } catch (error) {
+      console.error("Insert Department Detail Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getDepartmentDetil: (req, res) => {
+    getAllDepartmetnDetail((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+  insertProgramMasterDetail: (req, res) => {
+    try {
+      const data = req.body;
+      const { program_name } = data;
+
+      // Validation
+      if (!program_name || program_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program name is required",
+        });
+      }
+
+      insertProgramDetail(data, (error, result) => {
+        if (error) {
+          console.error("Insert Program Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Program inserted successfully",
+          program_id: result.program_id,
+        });
+      });
+    } catch (error) {
+      console.error("Insert Program Catch Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  updateProgramMasterDetail: (req, res) => {
+    try {
+      const data = req.body;
+      const { program_id, program_name } = data;
+
+      if (!program_id) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program ID required",
+        });
+      }
+
+      if (!program_name || program_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program name is required",
+        });
+      }
+
+      updateProgramDetail(data, (error, result) => {
+        if (error) {
+          console.error("Update Program Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Program updated successfully",
+        });
+      });
+    } catch (error) {
+      console.error("Update Program Catch Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  getProgramMasterDetail: (req, res) => {
+    getAllProgramDetail((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+
+  createDesignation: (req, res) => {
+    insertDesignation(req.body, (err, result) => {
+      if (err) return res.status(500).json({ success: 0 });
+      return res.json({ success: 1, data: result });
+    });
+  },
+
+  fetchDesignation: (req, res) => {
+    getAllDesignation((err, results) => {
+      if (err) return res.status(500).json({ success: 0 });
+      return res.json({ success: 1, data: results });
+    });
+  },
+
+  editDesignation: (req, res) => {
+    updateDesignation(req.body, (err, result) => {
+      if (err) return res.status(500).json({ success: 0 });
+      return res.json({ success: 1 });
+    });
   },
 };
