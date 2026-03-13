@@ -20,12 +20,29 @@ initSocket(server);
 // routes
 const userRoutes = require("./api/UserContorller/usercontroller.router");
 const adminRoutes = require("./api/admin/admin.router");
-const socketMiddleware = require('../flexibot_ai_api/MiddleWare/socke.middlewar');
+const studentroute = require("./api/Student/student.router");
+const socketMiddleware = require("../flexibot_ai_api/MiddleWare/socke.middlewar");
 const routeTrackerMiddleware = require("./MiddleWare/routeTracker.middleware");
 
 // socket allowed only here
-app.use("/api/user", routeTrackerMiddleware("USER_LOGIN_ROUTER"), socketMiddleware, userRoutes);
-app.use("/api/training", routeTrackerMiddleware("ADMIN_PDF_TRAINING"), socketMiddleware,adminRoutes );
+app.use(
+  "/api/user",
+  routeTrackerMiddleware("USER_LOGIN_ROUTER"),
+  socketMiddleware,
+  userRoutes,
+);
+app.use(
+  "/api/training",
+  routeTrackerMiddleware("ADMIN_PDF_TRAINING"),
+  socketMiddleware,
+  adminRoutes,
+);
+app.use(
+  "/api/student",
+  routeTrackerMiddleware("STUDENT_ACTIVITY_ROUTE"),
+  socketMiddleware,
+  studentroute,
+);
 
 // health check
 app.get("/health", (_, res) => res.send("OK"));

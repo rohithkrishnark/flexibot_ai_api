@@ -17,6 +17,18 @@ const {
   insertDesignation,
   getAllDesignation,
   updateDesignation,
+  getAllProgramYear,
+  updateProgramYear,
+  insertProgramYear,
+  getAllGroupDetail,
+  updateGroupDetail,
+  insertGroupDetail,
+  insertFaculty,
+  InsertFacultyLogin,
+  getAllFaculity,
+  ApproveFaculity,
+  ApproveFacLoginDtl,
+  getProgramMasterYearById,
 } = require("./admin.service");
 
 module.exports = {
@@ -555,6 +567,461 @@ module.exports = {
     updateDesignation(req.body, (err, result) => {
       if (err) return res.status(500).json({ success: 0 });
       return res.json({ success: 1 });
+    });
+  },
+
+  insertProgramMasterYear: (req, res) => {
+    try {
+      const data = req.body;
+      const { program_year_name, program_id } = data;
+
+      if (!program_year_name || program_year_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program year name is required",
+        });
+      }
+
+      if (!program_id) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program ID required",
+        });
+      }
+
+      insertProgramYear(data, (error, result) => {
+        if (error) {
+          console.error("Insert Program Year Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Program detail inserted successfully",
+          prgm_mast_dtl_slno: result.prgm_mast_dtl_slno,
+        });
+      });
+    } catch (error) {
+      console.error("Insert Program Year Catch Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  updateProgramMasterYear: (req, res) => {
+    try {
+      const data = req.body;
+      const { prgm_mast_dtl_slno, program_year_name, program_id } = data;
+
+      if (!prgm_mast_dtl_slno) {
+        return res.status(200).json({
+          success: 0,
+          message: "Detail ID required",
+        });
+      }
+
+      if (!program_year_name || program_year_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Program year name required",
+        });
+      }
+
+      updateProgramYear(data, (error, result) => {
+        if (error) {
+          console.error("Update Program Year Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Program detail updated successfully",
+        });
+      });
+    } catch (error) {
+      console.error("Update Program Year Catch Error:", error);
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getProgramMasterYear: (req, res) => {
+    getAllProgramYear((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+
+  getProgramMasterYearById: (req, res) => {
+    const id = req.params.id;
+    getProgramMasterYearById(id, (error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+
+  insertUserGroupMaster: (req, res) => {
+    try {
+      const data = req.body;
+      const { group_name } = data;
+
+      if (!group_name || group_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Group name is required",
+        });
+      }
+
+      insertGroupDetail(data, (error, result) => {
+        if (error) {
+          console.error("Insert Group Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Group inserted successfully",
+          group_id: result.group_id,
+        });
+      });
+    } catch (error) {
+      console.error("Insert Group Catch Error:", error);
+
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  updateUserGroupMaster: (req, res) => {
+    try {
+      const data = req.body;
+      const { group_id, group_name } = data;
+
+      if (!group_id) {
+        return res.status(200).json({
+          success: 0,
+          message: "Group ID required",
+        });
+      }
+
+      if (!group_name || group_name.length < 2) {
+        return res.status(200).json({
+          success: 0,
+          message: "Group name required",
+        });
+      }
+
+      updateGroupDetail(data, (error, result) => {
+        if (error) {
+          console.error("Update Group Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Group updated successfully",
+        });
+      });
+    } catch (error) {
+      console.error("Update Group Catch Error:", error);
+
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getUserGroupMaster: (req, res) => {
+    getAllGroupDetail((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+
+  RegisterFaculty: (req, res) => {
+    try {
+      const data = req.body;
+
+      const {
+        fac_name,
+        fac_dep_id,
+        fac_age,
+        fac_group,
+        fac_desg_id,
+        fac_mobile_no,
+        fac_address,
+        fac_email,
+      } = data;
+
+      // -------- VALIDATIONS --------
+
+      if (!fac_name || fac_name.length < 3) {
+        return res.status(200).json({
+          success: 0,
+          message: "Invalid faculty name",
+        });
+      }
+
+      if (!fac_age || fac_age < 21 || fac_age > 70) {
+        return res.status(200).json({
+          success: 0,
+          message: "Invalid age",
+        });
+      }
+
+      if (!fac_email) {
+        return res.status(200).json({
+          success: 0,
+          message: "Email is required",
+        });
+      }
+
+      if (!fac_dep_id) {
+        return res.status(200).json({
+          success: 0,
+          message: "Department is required",
+        });
+      }
+
+      if (!fac_group) {
+        return res.status(200).json({
+          success: 0,
+          message: "Group is required",
+        });
+      }
+
+      if (!fac_desg_id) {
+        return res.status(200).json({
+          success: 0,
+          message: "Designation is required",
+        });
+      }
+
+      if (!fac_mobile_no || fac_mobile_no.length !== 10) {
+        return res.status(200).json({
+          success: 0,
+          message: "Invalid mobile number",
+        });
+      }
+
+      if (!fac_address) {
+        return res.status(200).json({
+          success: 0,
+          message: "Address is required",
+        });
+      }
+
+      // -------- INSERT FACULTY --------
+
+      insertFaculty(data, async (error, result) => {
+        if (error) {
+          console.error("Insert Faculty Error:", error);
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        const fac_id = result.fac_id;
+
+        const defaultPassword = "123";
+
+        // -------- HASH PASSWORD --------
+
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+        const loginData = {
+          fac_id: fac_id,
+          fac_username: fac_email,
+          fac_password: hashedPassword,
+          fac_active_status: 0, // waiting for admin approval
+        };
+
+        // -------- INSERT LOGIN TABLE --------
+
+        InsertFacultyLogin(loginData, async (error) => {
+          if (error) {
+            console.error("Login Insert Error:", error);
+            return res.status(200).json({
+              success: 0,
+              message: "Login creation failed",
+            });
+          }
+
+          // -------- SEND EMAIL --------
+
+          const htmlTemplate = `
+        <div style="font-family: Arial; padding:20px;">
+          <h2 style="color:#13163c;">Welcome ${fac_name} 🎉</h2>
+
+          <p>Your Faculty Login Credentials:</p>
+          <hr/>
+
+          <p><b>Email:</b> ${fac_email}</p>
+          <p><b>Password:</b> ${defaultPassword}</p>
+
+          <br/>
+
+          <p>Your account will be activated only after admin verification.</p>
+
+          <p>Please change your password after login.</p>
+
+          <small>Training Portal Team</small>
+        </div>
+        `;
+
+          await sendMail(
+            fac_email,
+            "Your Faculty Login Credentials",
+            htmlTemplate,
+          );
+
+          return res.status(200).json({
+            success: 1,
+            message:
+              "Faculty registered successfully. Credentials sent to email",
+            fac_id,
+          });
+        });
+      });
+    } catch (error) {
+      console.error("Register Faculty Error:", error);
+
+      return res.status(200).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  getAllFaculity: (req, res) => {
+    getAllFaculity((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          data: [],
+          message: "No Record Found",
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  },
+  ApproveFaculity: (req, res) => {
+    const data = req.body;
+    ApproveFaculity(data, (error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      ApproveFacLoginDtl(data, (error, result) => {
+        if (error) {
+          return res.status(200).json({
+            success: 0,
+            message: "Something went wrong.Database Error",
+          });
+        }
+        return res.status(200).json({
+          success: 1,
+          message: "Admin verification Successfull",
+        });
+      });
+    });
+  },
+  ApproveFacLoginDtl: (req, res) => {
+    const data = req.body;
+    ApproveFacLoginDtl(data, (error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        message: "Upadate Successfully",
+      });
     });
   },
 };
