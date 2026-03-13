@@ -36,4 +36,43 @@ module.exports = {
       },
     );
   },
+
+    findUFacByEmail: (email, callback) => {
+    pool.query(
+      `
+      SELECT 
+    fac_login_id,
+    fac_username,
+    fac_password,
+    fac_active_status,
+    fa.fac_id,
+    fac_name,
+    fac_dep_id,
+    fac_age,
+    fac_group,
+    fac_desg_id,
+    fac_mobile_no,
+    fac_address,
+    fac_stauts,
+    fac_email,
+    fac_admin_verify
+FROM
+    fac_login_master fl
+        LEFT JOIN
+    faculity fa ON fl.fac_id = fa.fac_id
+WHERE
+    fl.fac_username = ?
+      `,
+      [email],
+      (err, rows) => {
+        if (err) {
+          console.error("findUserByEmail DB error:", err);
+          return callback(err, null);
+        }
+
+        // return first row or undefined
+        return callback(null, rows[0]);
+      },
+    );
+  },  
 };

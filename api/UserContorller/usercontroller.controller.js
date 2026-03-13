@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
-const { insertUser, findUserByEmail } = require("./usercontroller.service");
+const {
+  insertUser,
+  findUserByEmail,
+  findUFacByEmail,
+} = require("./usercontroller.service");
 
 module.exports = {
   // Register
@@ -98,8 +102,8 @@ module.exports = {
         }
 
         if (!user) {
-          return res.status(401).json({
-            success: 0,
+          return res.status(200).json({
+            success: 2,
             message: "Invalid email or password",
           });
         }
@@ -134,6 +138,90 @@ module.exports = {
               user_id: user.user_id,
               user_name: user.user_name,
               user_email: user.user_email,
+              role: "user",
+            },
+          });
+        });
+      });
+    } catch (error) {
+      console.error("loginUserDetail error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  //fac login
+
+  FacloginUserDetail: (req, res) => {
+    try {
+      const { user_email, password } = req.body;
+
+      if (!user_email || !password) {
+        return res.status(200).json({
+          success: 0,
+          message: "Missing required fields",
+        });
+      }
+
+      findUFacByEmail(user_email, (err, fac) => {
+        if (err) {
+          console.error("findFacByEmail error:", err);
+          return res.status(500).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        if (!fac) {
+          return res.status(200).json({
+            success: 2,
+            message: "Invalid email or password",
+          });
+        }
+
+        const { fac_admin_verify } = fac ?? {};
+
+        if (fac_admin_verify === 0) {
+          return res.status(200).json({
+            success: 4,
+            message: "Admin Approval Pending",
+          });
+        }
+
+        bcrypt.compare(password, fac.fac_password, (err, match) => {
+          if (err) {
+            console.error("bcrypt compare error:", err);
+            return res.status(500).json({
+              success: 0,
+              message: "Something went wrong",
+            });
+          }
+
+          if (!match) {
+            return res.status(401).json({
+              success: 0,
+              message: "Invalid email or password",
+            });
+          }
+
+          // Optional socket event
+          if (req.io) {
+            req.io.emit("fac-login-event", {
+              message: `${fac.fac_name} logged in`,
+            });
+          }
+
+          return res.status(200).json({
+            success: 1,
+            message: "Login successful",
+            data: {
+              fac_id: fac.fac_id,
+              fac_name: fac.fac_name,
+              user_email: fac.fac_username,
+              fac_dep_id: fac.fac_dep_id,
+              role: "fac",
             },
           });
         });
