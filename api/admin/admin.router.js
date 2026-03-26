@@ -1,3 +1,4 @@
+const createUpload = require("../../MiddleWare/multer");
 const {
   insertAluminiDetail,
   FetchAllAluminiDetail,
@@ -33,8 +34,15 @@ const {
 } = require("./Upload");
 
 const router = require("express").Router();
+const pdfUpload = createUpload(
+  "C:/uploads/training-pdfs",
+  ["application/pdf"],
+  10,
+);
 
-router.post("/upload", uploadTrainingPDF);
+// Call multer in the route, controller only handles the uploaded files
+router.post("/upload", pdfUpload.array("files", 10), uploadTrainingPDF);
+
 router.delete("/delete", deleteUploadFile);
 router.get("/existing", getExistingFiles);
 
@@ -49,10 +57,8 @@ router.post("/alumini/send-login", sendAluminimail);
 router.post("/faculty/registration", RegisterFaculty);
 router.get("/faculty/fetchall", getAllFaculity);
 
-
 router.post("/faculty/approve", ApproveFaculity);
 router.post("/faculty/activefac", ApproveFacLoginDtl);
-
 
 /**
  *
