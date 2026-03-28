@@ -337,6 +337,11 @@ module.exports = {
   },
 
   getMyConnections: (user_id, user_type, callback) => {
+    console.log({
+      user_id,
+      user_type,
+    });
+
     pool.query(
       `
     SELECT 

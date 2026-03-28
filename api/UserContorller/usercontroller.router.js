@@ -1,9 +1,17 @@
-const { loginUserDetail, RegisterUser, FacloginUserDetail } = require('./usercontroller.controller');
+const {
+  loginUserDetail,
+  RegisterUser,
+  FacloginUserDetail,
+  AluminiLogin,
+} = require("./usercontroller.controller");
 
-const router = require('express').Router();
+const router = require("express").Router();
 
-router.post('/login',loginUserDetail);
-router.post('/signin',RegisterUser)
+router.post("/login", loginUserDetail);
+router.post("/signin", RegisterUser);
 
-router.post('/faclogin',FacloginUserDetail);
+router.post("/faclogin", FacloginUserDetail);
+
+router.post("/alumlogin", AluminiLogin);
+
 module.exports = router;
