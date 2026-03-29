@@ -26,6 +26,10 @@ const {
   ApproveFaculity,
   ApproveFacLoginDtl,
   getProgramMasterYearById,
+  insertAlertDetail,
+  getAdminAlert,
+  deleteAlerts,
+  loginAdminDetail,
 } = require("./admin.controller");
 const {
   uploadTrainingPDF,
@@ -87,5 +91,14 @@ router.get("/program-detail/get/:id", getProgramMasterYearById);
 router.post("/group/insert", insertUserGroupMaster);
 router.post("/group/update", updateUserGroupMaster);
 router.get("/group/get", getUserGroupMaster);
+
+
+router.post("/alert/insert", insertAlertDetail);
+router.get("/alert/get", getAdminAlert);
+router.post("/alert/delete", deleteAlerts);
+
+
+
+router.post('/login',loginAdminDetail)
 
 module.exports = router;

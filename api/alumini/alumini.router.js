@@ -19,6 +19,8 @@ const {
   getProfileDetail,
   getFullProfile,
   updateAluminiBio,
+  getAllAluminiPostDetail,
+  getAllAluminiEvents,
 } = require("./alumini.controller");
 const {
   uploadAluminiPostMedia,
@@ -27,6 +29,8 @@ const {
   getAllAluminiEventDetail,
   uploadAluminiProfilePicture,
   getAluminiProfilePhoto,
+  getFullpostMediaDetail,
+  getAllAluminiEventsMedia,
 } = require("./AluminiUpload");
 
 const router = require("express").Router();
@@ -55,11 +59,6 @@ router.get("/getall", fetchAllActiveAlumini);
 
 router.post("/getsingledetail", fetchloggedAluminDetail);
 
-// Insert Event
-// router.post("/job/insert", insertAluminiEvent);
-
-// // Get All Events
-// router.get("/job/getall", fetchAllEvents);
 
 router.post("/posts/create", createPost);
 router.post("/posts/getall", getAllAluminiPost);
@@ -111,5 +110,13 @@ router.get("/profile/:alum_id", getProfileDetail);
 router.get("/full/:alum_id", getFullProfile);
 
 router.post("/bioupdate", updateAluminiBio);
+
+
+router.post("/posts/fullpostfetch", getAllAluminiPostDetail);
+router.post("/posts/fullpostfetchmedia", getFullpostMediaDetail);
+
+
+router.post('/events/getAllAluminiEvent',getAllAluminiEvents)
+router.post('/events/getAllAluminiEventMedia',getAllAluminiEventsMedia)
 
 module.exports = router;

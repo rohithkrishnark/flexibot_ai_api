@@ -254,6 +254,171 @@ const getAllAlumniniPostDetail = (req, res) => {
   });
 };
 
+
+
+
+const getFullpostMediaDetail = (req, res) => {
+  const baseDir = path.join(POST_UPLOAD_DIR);
+
+  if (!fs.existsSync(baseDir)) {
+    return res.status(200).json({
+      success: 2,
+      message: "No posts found",
+      data: [],
+    });
+  }
+
+  const alumIds = fs.readdirSync(baseDir);
+  let allPosts = [];
+
+  alumIds.forEach((alumId) => {
+    const alumDir = path.join(baseDir, alumId);
+
+    if (!fs.lstatSync(alumDir).isDirectory()) return;
+
+    const postIds = fs.readdirSync(alumDir);
+
+    postIds.forEach((postId) => {
+      const postDir = path.join(alumDir, postId);
+
+      if (!fs.lstatSync(postDir).isDirectory()) return;
+
+      const photosDir = path.join(postDir, "photos");
+      const videosDir = path.join(postDir, "videos");
+
+      let mediaFiles = [];
+
+      // 📸 Photos
+      if (fs.existsSync(photosDir)) {
+        const photos = fs.readdirSync(photosDir).map((file, index) => ({
+          id: index + 1,
+          filename: file,
+          type: "image",
+          url: `/uploads/alumini-posts/${alumId}/${postId}/photos/${file}`,
+        }));
+        mediaFiles.push(...photos);
+      }
+
+      // 🎥 Videos
+      if (fs.existsSync(videosDir)) {
+        const videos = fs.readdirSync(videosDir).map((file, index) => ({
+          id: mediaFiles.length + index + 1,
+          filename: file,
+          type: "video",
+          url: `/uploads/alumini-posts/${alumId}/${postId}/videos/${file}`,
+        }));
+        mediaFiles.push(...videos);
+      }
+
+      //  Push each post as separate item (flat structure)
+      if (mediaFiles.length > 0) {
+        allPosts.push({
+          alumId,
+          postId,
+          media: mediaFiles,
+        });
+      }
+    });
+  });
+
+  //  Optional: latest posts first
+  allPosts.sort((a, b) => Number(b.postId) - Number(a.postId));
+
+  return res.status(200).json({
+    success: 1,
+    message: "All alumni posts fetched",
+    count: allPosts.length,
+    data: allPosts,
+  });
+};
+
+
+
+const getAllAluminiEventsMedia = (req, res) => {
+  try {
+    const baseDir = path.join(EVENT_UPLOAD_DIR);
+
+    if (!fs.existsSync(baseDir)) {
+      return res.status(200).json({
+        success: 2,
+        message: "No event folders found",
+        data: [],
+      });
+    }
+
+    const alumIds = fs.readdirSync(baseDir);
+    let allEvents = [];
+
+    alumIds.forEach((alumId) => {
+      const alumDir = path.join(baseDir, alumId);
+
+      if (!fs.existsSync(alumDir) || !fs.statSync(alumDir).isDirectory()) return;
+
+      const postIds = fs.readdirSync(alumDir);
+
+      postIds.forEach((postId) => {
+        const postDir = path.join(alumDir, postId);
+
+        if (!fs.existsSync(postDir) || !fs.statSync(postDir).isDirectory()) return;
+
+        const photosDir = path.join(postDir, "photos");
+        const videosDir = path.join(postDir, "videos");
+
+        let mediaFiles = [];
+
+        // 📸 PHOTOS
+        if (fs.existsSync(photosDir)) {
+          const photos = fs.readdirSync(photosDir).map((file, index) => ({
+            id: index + 1,
+            filename: file,
+            type: "image",
+            url: `/uploads/alumini-events/${alumId}/${postId}/photos/${file}`,
+          }));
+          mediaFiles.push(...photos);
+        }
+
+        // 🎥 VIDEOS
+        if (fs.existsSync(videosDir)) {
+          const videos = fs.readdirSync(videosDir).map((file, index) => ({
+            id: mediaFiles.length + index + 1,
+            filename: file,
+            type: "video",
+            url: `/uploads/alumini-events/${alumId}/${postId}/videos/${file}`,
+          }));
+          mediaFiles.push(...videos);
+        }
+
+        // ✅ PUSH EVEN IF EMPTY (IMPORTANT)
+        allEvents.push({
+          alumId,
+          postId,
+          media: mediaFiles, // can be []
+        });
+      });
+    });
+
+    // ✅ SORT (latest first)
+    allEvents.sort((a, b) => Number(b.postId) - Number(a.postId));
+
+    return res.status(200).json({
+      success: 1,
+      message: "All alumni event media fetched",
+      count: allEvents.length,
+      data: allEvents,
+    });
+
+  } catch (error) {
+    console.error("EVENT MEDIA ERROR:", error);
+
+    return res.status(500).json({
+      success: 0,
+      message: "Server error while fetching event media",
+      error: error.message,
+    });
+  }
+};
+
+
 const getAllAluminiEventDetail = (req, res) => {
   const { AlumId } = req.params;
 
@@ -407,4 +572,6 @@ module.exports = {
   getAllAluminiEventDetail,
   uploadAluminiProfilePicture,
   getAluminiProfilePhoto,
+  getFullpostMediaDetail,
+  getAllAluminiEventsMedia
 };

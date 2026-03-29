@@ -5,6 +5,7 @@ const {
   updateLastMessage,
   getConversationByUsers,
   getMessagesByConversation,
+  getChatUsers,
 } = require("./chatbot.service");
 
 module.exports = {
@@ -104,7 +105,7 @@ module.exports = {
                 }
               },
             );
-            // ✅ REALTIME EMIT (IMPORTANT)
+            //  REALTIME EMIT (IMPORTANT)
             req.io.to(receiver_id).emit("new-message", {
               conversation_id: conversation.id,
               sender_id,
@@ -197,4 +198,37 @@ module.exports = {
       });
     }
   },
+  getChatUsersController: (req, res) => {
+  try {
+    const { user_id } = req.params;
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: 0,
+        message: "User ID required",
+      });
+    }
+
+    getChatUsers(user_id, (err, result) => {
+      if (err) {
+        console.log(err);
+        
+        return res.status(500).json({
+          success: 0,
+          message: "DB error",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        data: result,
+      });
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: 0,
+      message: "Something went wrong",
+    });
+  }
+}
 };

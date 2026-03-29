@@ -128,6 +128,44 @@ module.exports = {
       },
     );
   },
+  getAllAluminiPostDetail: (callback) => {
+    pool.query(
+      `SELECT 
+          id,
+          user_id,
+          post_type,
+          title,
+          description,
+          company,
+          location,
+          salary,
+          event_date,
+          created_at,
+          alum.alum_name,
+          alum.alum_id,
+          alum_age,
+          alum_company,
+          alum_company_location,
+          alum_company_designation,
+          alum_experience,
+          alum_qualification,
+          alum_email,
+          is_email_send,
+          followers_count,
+          bio
+      FROM
+          posts
+	LEFT JOIN alumini alum  on alum.alum_id = posts.user_id
+      WHERE
+      post_status = 1 and alum.is_email_send and alum.alum_status;
+    `,
+      [],
+      (err, result) => {
+        if (err) return callback(err);
+        return callback(null, result);
+      },
+    );
+  },
 
   getAllAluminiEventPost: (alum_id, callback) => {
     pool.query(
@@ -152,6 +190,49 @@ module.exports = {
       WHERE user_id = ?
     `,
       [alum_id],
+      (err, result) => {
+        if (err) return callback(err);
+        return callback(null, result);
+      },
+    );
+  },
+  getAllAluminiEvents: ( callback) => {
+    pool.query(
+      `
+SELECT
+        id,
+        user_id,
+        event_type,
+        title,
+        description,
+        company,
+        event_date,
+        start_time, 
+        end_time,
+        location,
+        registration_link, 
+        banner_image, 
+        status,
+        created_at,
+        alum.alum_name,
+          alum.alum_id,
+          alum_age,
+          alum_company,
+          alum_company_location,
+          alum_company_designation,
+          alum_experience,
+          alum_qualification,
+          alum_email,
+          is_email_send,
+          followers_count,
+          bio
+      FROM
+          alumni_events
+      left join alumini alum on alum.alum_id = alumni_events.user_id
+      WHERE
+       alum.is_email_send and alum.alum_status 
+    `,
+      [],
       (err, result) => {
         if (err) return callback(err);
         return callback(null, result);

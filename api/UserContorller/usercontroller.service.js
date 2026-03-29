@@ -106,4 +106,19 @@ WHERE
       },
     );
   },
+  saveContact: (data, callback) => {
+    pool.query(
+      ` INSERT INTO contact_messages 
+        (name, email, mobile, address, message)
+        VALUES (?, ?, ?, ?, ?)`,
+      [data.name, data.email, data.mobile, data.address, data.message],
+      (err, result) => {
+        if (err) {
+          console.error("insertUser DB error:", err);
+          return callback(err, null);
+        }
+        return callback(null, result);
+      },
+    );
+  },
 };

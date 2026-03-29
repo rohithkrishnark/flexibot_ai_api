@@ -527,6 +527,82 @@ module.exports = {
     );
   },
 
+  getAdminAlert: (callback) => {
+    pool.query(
+      `
+    SELECT *
+      FROM alerts
+      where is_active = 1
+      ORDER BY created_at DESC
+    `,
+      [],
+      (error, results) => {
+        if (error) {
+          console.error("DB getAllProgramYear error:", error);
+          return callback(error, null);
+        }
+        return callback(null, results);
+      },
+    );
+  },
+
+  deleteAlerts: (id, callback) => {
+    pool.query(
+      `UPDATE alerts SET is_active = 0 WHERE id=?`,
+      [id],
+      (error, results) => {
+        if (error) {
+          console.error("DB getAllProgramYear error:", error);
+          return callback(error, null);
+        }
+        return callback(null, results);
+      },
+    );
+  },
+
+  findAdminByUserName: (data, callback) => {
+    const { username, password } = data;
+    pool.query(
+      "SELECT * FROM admin_users WHERE username = ? and password =?",
+      [username, password],
+      (err, rows) => {
+        if (err) {
+          console.error("findUserByEmail DB error:", err);
+          return callback(err, null);
+        }
+
+        // return first row or undefined
+        return callback(null, rows[0]);
+      },
+    );
+  },
+
+  insertAlert: (data, callback) => {
+    const { title, message } = data;
+
+    pool.query(
+      `
+    INSERT INTO alerts
+    (
+      title,
+      message
+    )
+    VALUES (?, ?)
+    `,
+      [title, message],
+      (error, result) => {
+        if (error) {
+          console.error("DB insertAlert error:", error);
+          return callback(error, null);
+        }
+
+        return callback(null, {
+          alert_id: result.insertId,
+        });
+      },
+    );
+  },
+
   insertGroupDetail: (data, callback) => {
     const { group_name, group_alias, group_status } = data;
 

@@ -4,6 +4,7 @@ const {
   findUserByEmail,
   findUFacByEmail,
   findAluminiByEmail,
+  saveContact,
 } = require("./usercontroller.service");
 
 module.exports = {
@@ -201,7 +202,7 @@ module.exports = {
           }
 
           if (!match) {
-            return res.status(401).json({
+            return res.status(200).json({
               success: 0,
               message: "Invalid email or password",
             });
@@ -315,4 +316,34 @@ module.exports = {
       });
     }
   },
+
+  saveContact: (req, res) => {
+    const { name, email, mobile, address, message } = req.body;
+
+    // validation
+    if (!name || !email || !message) {
+        return res.status(400).json({
+            success: false,
+            message: "Name, Email and Message are required",
+        });
+    }
+
+    const data = { name, email, mobile, address, message };
+
+    //  CALL MODEL (FIXED)
+    saveContact(data, (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({
+                success: false,
+                message: "DB error",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Thanks for your interest",
+        });
+    });
+},
 };

@@ -29,6 +29,10 @@ const {
   ApproveFaculity,
   ApproveFacLoginDtl,
   getProgramMasterYearById,
+  insertAlert,
+  getAdminAlert,
+  deleteAlerts,
+  findAdminByUserName,
 } = require("./admin.service");
 
 module.exports = {
@@ -1023,5 +1027,180 @@ module.exports = {
         message: "Upadate Successfully",
       });
     });
+  },
+
+  insertAlertDetail: (req, res) => {
+    const data = req.body;
+    const { title, message } = data;
+
+    // Validation
+    if (!title || title.trim() === "") {
+      return res.status(400).json({
+        success: 0,
+        message: "Title is required",
+      });
+    }
+
+    if (!message || message.trim() === "") {
+      return res.status(400).json({
+        success: 0,
+        message: "Message is required",
+      });
+    }
+
+    insertAlert(data, (error, result) => {
+      if (error) {
+        console.error("insertAlertDetail error:", error);
+        return res.status(500).json({
+          success: 0,
+          message: "Database error while inserting alert",
+        });
+      }
+
+      //  SOCKET EMIT (send to all connected students)
+      if (req.io) {
+        req.io.emit("new_alert", {
+          alert_id: result.alert_id,
+          title: data.title,
+          message: data.message,
+          created_at: new Date(),
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        message: "Alert Sent Successfully",
+        alert_id: result.alert_id,
+      });
+    });
+  },
+
+  getAdminAlert: (req, res) => {
+    getAdminAlert((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          message: "No Data found",
+          data: [],
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        message: "Inserted Successfully",
+        data: result,
+      });
+    });
+  },
+  deleteAlerts: (req, res) => {
+    const data = req.body;
+    const { id } = data;
+    if (!id) {
+      return res.status(200).json({
+        success: 0,
+        message: "Id is missing",
+      });
+    }
+    deleteAlerts(id, (error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      return res.status(200).json({
+        success: 1,
+        message: "Alert Deleted SuccessFully",
+      });
+    });
+  },
+
+  loginAdminDetail: (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({
+          success: 0,
+          message: "Missing required fields",
+        });
+      }
+
+      findAdminByUserName(req.body, (err, user) => {
+        if (err) {
+          console.error("findUserByEmail error:", err);
+          return res.status(500).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        if (!user) {
+          return res.status(200).json({
+            success: 2,
+            message: "Invalid email or password",
+          });
+        }
+
+        // bcrypt.compare(password, user.password, (err, match) => {
+        //   if (err) {
+        //     console.error("bcrypt compare error:", err);
+        //     return res.status(500).json({
+        //       success: 0,
+        //       message: "Something went wrong",
+        //     });
+        //   }
+
+        //   if (!match) {
+        //     return res.status(401).json({
+        //       success: 0,
+        //       message: "Invalid email or password",
+        //     });
+        //   }
+
+        //   // Optional socket event
+        //   if (req.io) {
+        //     req.io.emit("login-event", {
+        //       message: `${user.user_name} logged in`,
+        //     });
+        //   }
+
+        //   return res.status(200).json({
+        //     success: 1,
+        //     message: "Login successful",
+        //     data: {
+        //       user_id: user.user_id,
+        //       user_name: user.user_name,
+        //       user_email: user.user_email,
+        //       role: "user",
+        //     },
+        //   });
+        // });
+
+        return res.status(200).json({
+          success: 1,
+          message: "Login successful",
+          data: {
+            user_id: user.user_id,
+            user_name: user.user_name,
+            user_email: user.user_email,
+            role: "user",
+          },
+        });
+      });
+    } catch (error) {
+      console.error("loginUserDetail error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
   },
 };

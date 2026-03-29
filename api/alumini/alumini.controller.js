@@ -23,6 +23,8 @@ const {
   updateAluminiBio,
   insertExperiencePromise,
   insertEducationPromise,
+  getAllAluminiPostDetail,
+  getAllAluminiEvents,
 } = require("./alumini.service");
 
 module.exports = {
@@ -163,15 +165,7 @@ module.exports = {
 
   getAllAluminiPost: (req, res) => {
     const { alum_id } = req.body;
-    console.log({
-      alum_id,
-    });
-
     getAllAluminiPost(alum_id, (err, result) => {
-      console.log({
-        result,
-      });
-
       if (err) return res.status(500).json({ success: 0, message: "DB error" });
       if (result?.length === 0)
         return res
@@ -180,6 +174,9 @@ module.exports = {
       return res.status(200).json({ success: 1, data: result });
     });
   },
+
+
+
 
   getAllAluminiEventPost: (req, res) => {
     const { alum_id } = req.body;
@@ -740,4 +737,28 @@ module.exports = {
       res.status(500).json({ success: 0 });
     }
   },
+
+
+    getAllAluminiPostDetail: (req, res) => {
+    getAllAluminiPostDetail((err, result) => {
+      if (err) return res.status(500).json({ success: 0, message: "DB error" });
+      if (result?.length === 0)
+        return res
+          .status(200)
+          .json({ success: 2, message: "No Post Available", data: [] });
+      return res.status(200).json({ success: 1, data: result });
+    });
+  },
+    getAllAluminiEvents: (req, res) => {
+    getAllAluminiEvents( (err, result) => {
+      if (err) return res.status(500).json({ success: 0, message: "DB error" });
+      if (result?.length === 0)
+        return res
+          .status(200)
+          .json({ success: 2, message: "No Post Available", data: [] });
+      return res.status(200).json({ success: 1, data: result });
+    });
+  },
 };
+
+
