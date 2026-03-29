@@ -14,12 +14,18 @@ const {
   getPostById,
   deletePost,
   createActivityController,
-  getAllActivityDetail,
+  // getAllActivityDetail,
   connectUser,
   getMyConnections,
   getLoggedStudentDetail,
   EditStudentBio,
   EditSkills,
+  getAllTotalStudents,
+  getallActivityDetail,
+  getAllStudentFullActivity,
+  getAllActivityDetail,
+  giveActivityScore,
+  rejectActivity,
 } = require("./student.controller");
 const {
   uploadPostMedia,
@@ -30,6 +36,7 @@ const {
   getAllStudentActivities,
   uploadProfilePicture,
   getMyProfilePhoto,
+  getAllStudentsActivities,
 } = require("./StudentUpload");
 
 // Images/videos allowed
@@ -55,6 +62,11 @@ const studentProfile = createUpload(
 router.post("/insert", insertStudentDetail);
 // Fetch all
 router.post("/all", getAllStudents);
+
+
+
+router.get("/totalstudents", getAllTotalStudents);
+
 
 // Fetch single
 router.get("/:id", getStudentById);
@@ -115,5 +127,12 @@ router.post(
   studentProfile.single("media"),
   uploadProfilePicture,
 );
+
+router.get("/activity/allstudent/post", getAllStudentsActivities);
+router.post('/activity/getallstudent/detail',getAllStudentFullActivity)
+
+
+router.post('/activity/givescore',giveActivityScore)
+router.post('/activity/reject',rejectActivity)
 
 module.exports = router;

@@ -3,6 +3,8 @@ const {
   insertUser,
   findUserByEmail,
   findUFacByEmail,
+  findAluminiByEmail,
+  saveContact,
 } = require("./usercontroller.service");
 
 module.exports = {
@@ -200,7 +202,7 @@ module.exports = {
           }
 
           if (!match) {
-            return res.status(401).json({
+            return res.status(200).json({
               success: 0,
               message: "Invalid email or password",
             });
@@ -234,4 +236,114 @@ module.exports = {
       });
     }
   },
+
+  AluminiLogin: (req, res) => {
+    try {
+      const { user_email, password } = req.body;
+
+      if (!user_email || !password) {
+        return res.status(200).json({
+          success: 0,
+          message: "Missing required fields",
+        });
+      }
+
+      findAluminiByEmail(user_email, (err, fac) => {
+        if (err) {
+          console.error("findFacByEmail error:", err);
+          return res.status(500).json({
+            success: 0,
+            message: "Something went wrong",
+          });
+        }
+
+        if (!fac) {
+          return res.status(200).json({
+            success: 2,
+            message: "Invalid email or password",
+          });
+        }
+
+        const { is_email_send } = fac ?? {};
+
+        if (is_email_send === 0) {
+          return res.status(200).json({
+            success: 4,
+            message: "Admin Approval Pending",
+          });
+        }
+
+        bcrypt.compare(password, fac.alum_password, (err, match) => {
+          if (err) {
+            console.error("bcrypt compare error:", err);
+            return res.status(500).json({
+              success: 0,
+              message: "Something went wrong",
+            });
+          }
+
+          if (!match) {
+            return res.status(401).json({
+              success: 0,
+              message: "Invalid email or password",
+            });
+          }
+
+          // Optional socket event
+          if (req.io) {
+            req.io.emit("alumini-login-event", {
+              message: `${fac.alum_name} logged in`,
+            });
+          }
+
+          return res.status(200).json({
+            success: 1,
+            message: "Login successful",
+            data: {
+              alum_id: fac.alum_id,
+              alum_name: fac.alum_name,
+              alum_email: fac.alum_email,
+              role: "alumni",
+            },
+          });
+        });
+      });
+    } catch (error) {
+      console.error("loginUserDetail error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  saveContact: (req, res) => {
+    const { name, email, mobile, address, message } = req.body;
+
+    // validation
+    if (!name || !email || !message) {
+        return res.status(400).json({
+            success: false,
+            message: "Name, Email and Message are required",
+        });
+    }
+
+    const data = { name, email, mobile, address, message };
+
+    //  CALL MODEL (FIXED)
+    saveContact(data, (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({
+                success: false,
+                message: "DB error",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Thanks for your interest",
+        });
+    });
+},
 };

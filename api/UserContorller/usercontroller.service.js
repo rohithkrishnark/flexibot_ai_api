@@ -37,7 +37,7 @@ module.exports = {
     );
   },
 
-    findUFacByEmail: (email, callback) => {
+  findUFacByEmail: (email, callback) => {
     pool.query(
       `
       SELECT 
@@ -74,5 +74,51 @@ WHERE
         return callback(null, rows[0]);
       },
     );
-  },  
+  },
+
+  findAluminiByEmail: (email, callback) => {
+    pool.query(
+      `
+      SELECT 
+        alumini.alum_id, alum_name,
+        alum_age,
+        alum_company, 
+        alum_company_location, 
+        alum_company_designation,
+        alum_experience,
+        alum_qualification, alum_status, alum_email, is_email_send, followers_count,
+        alumini_master.alum_password
+      FROM
+          alumini
+      left join alumini_master on alumini_master.alum_id = alumini.alum_id
+      WHERE
+          alum_email = ? and alum_status = 1 and is_email_send = 1
+      `,
+      [email],
+      (err, rows) => {
+        if (err) {
+          console.error("findUserByEmail DB error:", err);
+          return callback(err, null);
+        }
+
+        // return first row or undefined
+        return callback(null, rows[0]);
+      },
+    );
+  },
+  saveContact: (data, callback) => {
+    pool.query(
+      ` INSERT INTO contact_messages 
+        (name, email, mobile, address, message)
+        VALUES (?, ?, ?, ?, ?)`,
+      [data.name, data.email, data.mobile, data.address, data.message],
+      (err, result) => {
+        if (err) {
+          console.error("insertUser DB error:", err);
+          return callback(err, null);
+        }
+        return callback(null, result);
+      },
+    );
+  },
 };

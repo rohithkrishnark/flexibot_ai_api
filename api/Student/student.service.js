@@ -74,6 +74,34 @@ module.exports = {
       },
     );
   },
+  getAllTotalStudents: (callback) => {
+    pool.query(
+      `
+  SELECT
+        s.*,
+        pm.program_name,
+        py.program_year_name,
+        dm.dep_name
+      FROM student s
+      LEFT JOIN program_master pm
+      ON pm.program_id = s.std_program_id
+      LEFT JOIN program_master_detail py
+      ON py.prgm_mast_dtl_slno = s.std_program_year
+       LEFT JOIN department_master dm
+		on dm.dep_id = s.std_dep_id
+    where std_status = 1
+      `,
+      [],
+      (err, rows) => {
+        if (err) {
+          console.error("fetchAllStudents DB error:", err);
+          return callback(err, null);
+        }
+
+        return callback(null, rows);
+      },
+    );
+  },
 
   getLoggedStudentDetail: (data, callback) => {
     pool.query(
@@ -280,6 +308,39 @@ module.exports = {
     );
   },
 
+  getAllStudentFullActivity: (dep_id, callback) => {
+    pool.query(
+      `
+      SELECT 
+      *,
+      st.std_id,
+      st.std_name,
+      st.std_age,
+      st.std_email,
+      st.std_mobile_no,
+      st.std_address,
+      st.std_dep_id,
+      st.std_status,
+      st.std_program_id,
+      st.std_program_year,
+      st.std_status,
+      st.create_date,
+      st.edit_date,
+      st.bio,
+      st.skill,
+      std.std_name as scoregive_staff
+ FROM student_activities sa
+left join student st on st.std_id = sa.student_id
+left join student std on std.std_id = sa.student_id
+where st.std_dep_id= ? and st.std_status = 1 ORDER BY created_at DESC`,
+      [dep_id],
+      (err, rows) => {
+        if (err) return callback(err, null);
+        callback(null, rows);
+      },
+    );
+  },
+
   fetchPostById: (id, callback) => {
     const query = `SELECT * FROM student_posts WHERE id = ?`;
     pool.query(query, [id], (err, rows) => {
@@ -337,6 +398,11 @@ module.exports = {
   },
 
   getMyConnections: (user_id, user_type, callback) => {
+    console.log({
+      user_id,
+      user_type,
+    });
+
     pool.query(
       `
     SELECT 
@@ -384,6 +450,35 @@ module.exports = {
       },
     );
   },
+
+  giveActivityScore: (data, callback) => {
+    const { score, user_id, activity_id } = data;
+    pool.query(
+      `UPDATE student_activities
+     SET activity_score = ?,given_staff=?
+     WHERE id = ?`,
+      [score, user_id, activity_id],
+      (err, result) => {
+        if (err) return callback(err);
+        callback(null, result);
+      },
+    );
+  },
+ rejectActivity: (data, callback) => {
+    const { reject_reason, user_id, activity_id } = data;
+    pool.query(
+      `UPDATE student_activities
+     SET reason = ?,given_staff=?,rejected=1
+     WHERE id = ?`,
+      [reject_reason, user_id, activity_id],
+      (err, result) => {
+        if (err) return callback(err);
+        callback(null, result);
+      },
+    );
+  },
+  
+
   EditSkillService: (data, callback) => {
     pool.query(
       `UPDATE student

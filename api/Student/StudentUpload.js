@@ -300,10 +300,6 @@ const getAllStudentPostDetail = (req, res) => {
 const getAllStudentActivities = (req, res) => {
   const { StdId } = req.params;
 
-  console.log({
-    StdId,
-  });
-
   if (!StdId) {
     return res.status(400).json({ success: 0, message: "Student ID required" });
   }
@@ -412,6 +408,87 @@ const getMyProfilePhoto = (req, res) => {
   });
 };
 
+
+
+const getAllStudentsActivities = (req, res) => {
+  const baseDir = path.join(ACTIVITY_UPLOAD_DIR);
+
+  // If no activity folder exists
+  if (!fs.existsSync(baseDir)) {
+    return res.status(200).json({
+      success: 1,
+      message: "No activity found",
+      data: [],
+    });
+  }
+
+  const studentFolders = fs
+    .readdirSync(baseDir)
+    .filter((f) => fs.statSync(path.join(baseDir, f)).isDirectory());
+
+  let allPosts = [];
+
+  // 🔥 LOOP ALL STUDENTS
+  studentFolders.forEach((StdId) => {
+    const studentDir = path.join(baseDir, StdId);
+
+    const postFolders = fs
+      .readdirSync(studentDir)
+      .filter((f) =>
+        fs.statSync(path.join(studentDir, f)).isDirectory()
+      );
+
+    // 🔥 LOOP POSTS
+    postFolders.forEach((postId) => {
+      const postDir = path.join(studentDir, postId);
+      const photosDir = path.join(postDir, "photos");
+      const videosDir = path.join(postDir, "videos");
+
+      let mediaFiles = [];
+
+      // 📸 Photos
+      if (fs.existsSync(photosDir)) {
+        const photos = fs.readdirSync(photosDir).map((file, index) => ({
+          id: index + 1,
+          type: "image",
+          filename: file,
+          url: `/uploads/student-activity/${StdId}/${postId}/photos/${file}`,
+        }));
+        mediaFiles.push(...photos);
+      }
+
+      // 🎥 Videos
+      if (fs.existsSync(videosDir)) {
+        const videos = fs.readdirSync(videosDir).map((file, index) => ({
+          id: mediaFiles.length + index + 1,
+          type: "video",
+          filename: file,
+          url: `/uploads/student-activity/${StdId}/${postId}/videos/${file}`,
+        }));
+        mediaFiles.push(...videos);
+      }
+
+      // ✅ PUSH WITH STUDENT INFO
+      allPosts.push({
+        stdId: Number(StdId),
+        postId: Number(postId),
+        caption: `Post ${postId}`,
+        media: mediaFiles,
+      });
+    });
+  });
+
+  // 🔥 SORT LATEST FIRST
+  allPosts.sort((a, b) => b.postId - a.postId);
+
+  return res.status(200).json({
+    success: 1,
+    message: "All student activities fetched",
+    count: allPosts.length,
+    data: allPosts,
+  });
+};
+
 module.exports = {
   uploadPostMedia,
   getPostMedia,
@@ -421,4 +498,5 @@ module.exports = {
   getAllStudentActivities,
   uploadProfilePicture,
   getMyProfilePhoto,
+  getAllStudentsActivities
 };

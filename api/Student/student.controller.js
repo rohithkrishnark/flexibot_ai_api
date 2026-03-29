@@ -18,6 +18,10 @@ const {
   getLoggedStudentDetail,
   EditStudentBio,
   EditSkillService,
+  getAllTotalStudents,
+  getAllStudentFullActivity,
+  giveActivityScore,
+  rejectActivity,
 } = require("./student.service");
 const bcrypt = require("bcrypt");
 
@@ -97,6 +101,37 @@ module.exports = {
       });
     }
   },
+
+  getAllTotalStudents: (req, res) => {
+    try {
+      getAllTotalStudents((err, result) => {
+        if (err) {
+          return res.status(500).json({
+            success: 0,
+            message: "Database error",
+          });
+        }
+        if (!result || result.length === 0) {
+          return res.status(200).json({
+            success: 2,
+            data: [],
+            message: "No Record Found",
+          });
+        }
+        return res.status(200).json({
+          success: 1,
+          data: result,
+        });
+      });
+    } catch (error) {
+      console.error("getAllStudents error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
   getLoggedStudentDetail: (req, res) => {
     const data = req.body;
     try {
@@ -382,7 +417,7 @@ module.exports = {
 
           req.io.emit("new-activity", {
             activityId,
-            student_id: std_id,
+            student_id: student_id,
             caption,
             description,
           });
@@ -528,4 +563,49 @@ module.exports = {
       });
     });
   },
+
+  getAllStudentFullActivity: (req, res) => {
+    const { dep_id } = req.body;
+    getAllStudentFullActivity(dep_id, (err, result) => {
+      if (err) return res.status(500).json({ success: 0, message: "DB error" });
+      if (result.length === 0)
+        return res
+          .status(200)
+          .json({ success: 2, message: "No Post Available", data: [] });
+      return res.status(200).json({ success: 1, data: result });
+    });
+  },
+
+  giveActivityScore: (req, res) => {
+    const data = req.body;
+    const { score, user_id, activity_id } = data;
+
+    if (!score || !user_id || !activity_id) {
+      return res.status(400).json({ success: 0, message: "Missing fields" });
+    }
+
+    giveActivityScore(data, (err, result) => {
+      if (err) return res.status(500).json({ success: 0, message: "DB error" });
+      return res
+        .status(200)
+        .json({ success: 1, message: "New activity score Added" });
+    });
+  },
+
+  rejectActivity: (req, res) => {
+    const data = req.body;
+    const { reject_reason, user_id, activity_id } = data;
+
+    if (!reject_reason || !user_id || !activity_id) {
+      return res.status(400).json({ success: 0, message: "Missing fields" });
+    }
+
+    rejectActivity(data, (err, result) => {
+      if (err) return res.status(500).json({ success: 0, message: "DB error" });
+      return res
+        .status(200)
+        .json({ success: 1, message: "New activity score Added" });
+    });
+  },
+  
 };
