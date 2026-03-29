@@ -199,5 +199,24 @@ ORDER BY c.last_message_at DESC
     if (err) return callback(err);
     return callback(null, result);
   });
-}
+},
+
+
+
+ getRecentchant: (callback) => {
+    pool.query(
+      `SELECT *
+        FROM flexi_bot_ai.chatbot_messages
+        ORDER BY id DESC
+        LIMIT 9
+    `,
+      [],
+      (err, result) => {
+        if (err) return callback(err);
+        return callback(null, result);
+      },
+    );
+  },
+
+
 };
