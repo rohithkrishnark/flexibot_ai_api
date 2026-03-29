@@ -6,6 +6,7 @@ const {
   getConversationByUsers,
   getMessagesByConversation,
   getChatUsers,
+  getRecentchant,
 } = require("./chatbot.service");
 
 module.exports = {
@@ -199,36 +200,67 @@ module.exports = {
     }
   },
   getChatUsersController: (req, res) => {
-  try {
-    const { user_id } = req.params;
+    try {
+      const { user_id } = req.params;
 
-    if (!user_id) {
-      return res.status(400).json({
-        success: 0,
-        message: "User ID required",
-      });
-    }
-
-    getChatUsers(user_id, (err, result) => {
-      if (err) {
-        console.log(err);
-        
-        return res.status(500).json({
+      if (!user_id) {
+        return res.status(400).json({
           success: 0,
-          message: "DB error",
+          message: "User ID required",
         });
       }
 
-      return res.status(200).json({
-        success: 1,
-        data: result,
+      getChatUsers(user_id, (err, result) => {
+        if (err) {
+          console.log(err);
+
+          return res.status(500).json({
+            success: 0,
+            message: "DB error",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          data: result,
+        });
       });
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: 0,
-      message: "Something went wrong",
-    });
-  }
-}
+    } catch (error) {
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+  getRecentchant: (req, res) => {
+    try {
+      getRecentchant((err, conversation) => {
+        if (err) {
+          return res.status(500).json({
+            success: 0,
+            message: "DB error",
+          });
+        }
+
+        if (!conversation) {
+          return res.status(200).json({
+            success: 2,
+            data: [],
+            message: "No conversation yet",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Fectched Succefully",
+          data: conversation,
+        });
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
 };
