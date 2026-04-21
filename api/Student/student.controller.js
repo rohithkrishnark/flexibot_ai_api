@@ -1,3 +1,4 @@
+const { createAlert } = require("../alertsystem/alertService");
 const {
   insertStudent,
   fetchAllStudents,
@@ -22,6 +23,9 @@ const {
   getAllStudentFullActivity,
   giveActivityScore,
   rejectActivity,
+  insertFacDocuments,
+  getDocumentsByUploadedBy,
+  getAllDepartmentDocuments,
 } = require("./student.service");
 const bcrypt = require("bcrypt");
 
@@ -400,27 +404,87 @@ module.exports = {
         .json({ success: 0, message: "Something went wrong" });
     }
   },
+  // createActivityController: (req, res) => {
+  //   try {
+  //     const { caption, description, student_id } = req.body;
+
+  //     if (!student_id || !caption) {
+  //       return res.status(400).json({ success: 0, message: "Missing fields" });
+  //     }
+
+  //     createActivity(
+  //       { caption, description, student_id },
+  //       (err, activityId) => {
+  //         if (err) {
+  //           return res.status(500).json({ success: 0, message: "DB Error" });
+  //         }
+
+  //         req.io.emit("new-activity", {
+  //           activityId,
+  //           student_id: student_id,
+  //           caption,
+  //           description,
+  //         });
+
+  //         return res.status(200).json({
+  //           success: 1,
+  //           message: "Activity created successfully",
+  //           data: { activityId },
+  //         });
+  //       },
+  //     );
+  //   } catch (error) {
+  //     console.error("createActivityController error:", error);
+  //     return res
+  //       .status(500)
+  //       .json({ success: 0, message: "Something went wrong" });
+  //   }
+  // },
+
   createActivityController: (req, res) => {
     try {
       const { caption, description, student_id } = req.body;
 
       if (!student_id || !caption) {
-        return res.status(400).json({ success: 0, message: "Missing fields" });
+        return res.status(400).json({
+          success: 0,
+          message: "Missing fields",
+        });
       }
 
       createActivity(
         { caption, description, student_id },
         (err, activityId) => {
           if (err) {
-            return res.status(500).json({ success: 0, message: "DB Error" });
+            return res.status(500).json({
+              success: 0,
+              message: "DB Error",
+            });
           }
 
-          req.io.emit("new-activity", {
-            activityId,
-            student_id: student_id,
-            caption,
-            description,
+          // ================= ALERT CREATION =================
+          const alertData = {
+            title: "New Activity",
+            message: caption,
+            role: "faculty", // who should receive (change if needed)
+            type: "info",
+          };
+
+          createAlert(alertData, (alertErr, alert) => {
+            if (alertErr) {
+              console.error("Alert creation failed:", alertErr);
+            } else {
+              // SEND TO ALL USERS
+              req.io.emit("new_alert", alert);
+            }
           });
+          // // (Optional) keep old event if needed
+          // req.io.emit("new-activity", {
+          //   activityId,
+          //   student_id,
+          //   caption,
+          //   description,
+          // });
 
           return res.status(200).json({
             success: 1,
@@ -431,9 +495,10 @@ module.exports = {
       );
     } catch (error) {
       console.error("createActivityController error:", error);
-      return res
-        .status(500)
-        .json({ success: 0, message: "Something went wrong" });
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
     }
   },
 
@@ -607,5 +672,153 @@ module.exports = {
         .json({ success: 1, message: "New activity score Added" });
     });
   },
-  
+
+  insertFacDocuments: (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        program_id,
+        program_year,
+        department_id,
+        uploaded_by,
+      } = req.body;
+
+      //  VALIDATIONS
+      if (!title) {
+        return res
+          .status(400)
+          .json({ success: 0, message: "Title is required" });
+      }
+
+      if (!program_id) {
+        return res
+          .status(400)
+          .json({ success: 0, message: "Program is required" });
+      }
+
+      if (!program_year) {
+        return res
+          .status(400)
+          .json({ success: 0, message: "Program year is required" });
+      }
+
+      if (!department_id) {
+        return res
+          .status(400)
+          .json({ success: 0, message: "Department is required" });
+      }
+
+      //  Prepare data
+      const documentData = {
+        title,
+        description,
+        department_id,
+        program_id,
+        program_year,
+        uploaded_by, // from auth middleware
+      };
+
+      // SERVICE CALL
+      insertFacDocuments(documentData, (err, result) => {
+        if (err) {
+          console.error("DB Error:", err);
+          return res
+            .status(500)
+            .json({ success: 0, message: "Database error" });
+        }
+
+        //  SOCKET (optional)
+        req.io?.emit("new-document", {
+          title,
+          program_id,
+          program_year,
+        });
+
+        return res.status(200).json({
+          success: 1,
+          message: "Document created successfully",
+          document_id: result.document_id,
+        });
+      });
+    } catch (error) {
+      console.error("insertFacDocuments error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getDocumentsByUploadedByController: (req, res) => {
+    try {
+      const { uploaded_by } = req.body;
+
+      if (!uploaded_by) {
+        return res.status(400).json({
+          success: 0,
+          message: "uploaded_by is required",
+        });
+      }
+
+      getDocumentsByUploadedBy(uploaded_by, (err, results) => {
+        if (err) {
+          console.error("DB Error:", err);
+          return res.status(500).json({
+            success: 0,
+            message: "Database error",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Documents fetched successfully",
+          count: results.length,
+          data: results,
+        });
+      });
+    } catch (error) {
+      console.error("getDocumentsByUploadedBy error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getAllDepartmentDocuments: (req, res) => {
+    try {
+      const { department_id } = req.body;
+
+      if (!department_id) {
+        return res.status(400).json({
+          success: 0,
+          message: "Department  is required",
+        });
+      }
+
+      getAllDepartmentDocuments(department_id, (err, results) => {
+        if (err) {
+          console.error("DB Error:", err);
+          return res.status(500).json({
+            success: 0,
+            message: "Database error",
+          });
+        }
+
+        return res.status(200).json({
+          success: 1,
+          message: "Documents fetched successfully",
+          count: results.length,
+          data: results,
+        });
+      });
+    } catch (error) {
+      console.error("getDocumentsByUploadedBy error:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Something went wrong",
+      });
+    }
+  },
 };

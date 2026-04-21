@@ -1,6 +1,7 @@
 const router = require("express").Router();
 
 const createUpload = require("../../MiddleWare/multer");
+const { uploadFaculityDocuments } = require("../admin/Upload");
 const {
   insertStudentDetail,
   getAllStudents,
@@ -26,6 +27,9 @@ const {
   getAllActivityDetail,
   giveActivityScore,
   rejectActivity,
+  insertFacDocuments,
+  getDocumentsByUploadedByController,
+  getAllDepartmentDocuments,
 } = require("./student.controller");
 const {
   uploadPostMedia,
@@ -37,6 +41,8 @@ const {
   uploadProfilePicture,
   getMyProfilePhoto,
   getAllStudentsActivities,
+  getFaculityDocumentsByFaculty,
+  getAllFaculityDocuemntDetailByDep
 } = require("./StudentUpload");
 
 // Images/videos allowed
@@ -58,15 +64,31 @@ const studentProfile = createUpload(
   1,
 );
 
+const pdfUpload = createUpload(
+  "C:/uploads/faculity-document",
+  ["application/pdf"],
+  10,
+);
+
 // Insert
 router.post("/insert", insertStudentDetail);
+
+//FACULITY
+router.post(
+  "/upload-document",
+  pdfUpload.array("files", 10),
+  uploadFaculityDocuments,
+);
+
+router.post("/insert-fac-documents", insertFacDocuments);
+router.post("/documents/by-user", getDocumentsByUploadedByController);
+
+router.post("/documents/by-dep", getAllDepartmentDocuments);
+
 // Fetch all
 router.post("/all", getAllStudents);
 
-
-
 router.get("/totalstudents", getAllTotalStudents);
-
 
 // Fetch single
 router.get("/:id", getStudentById);
@@ -128,11 +150,14 @@ router.post(
   uploadProfilePicture,
 );
 
+router.get("/documents/faculty/:faculty_id", getFaculityDocumentsByFaculty);
+
 router.get("/activity/allstudent/post", getAllStudentsActivities);
-router.post('/activity/getallstudent/detail',getAllStudentFullActivity)
+router.post("/activity/getallstudent/detail", getAllStudentFullActivity);
 
+router.post("/activity/givescore", giveActivityScore);
+router.post("/activity/reject", rejectActivity);
 
-router.post('/activity/givescore',giveActivityScore)
-router.post('/activity/reject',rejectActivity)
+router.get("/documents/department/:depid", getAllFaculityDocuemntDetailByDep);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const { createAlert } = require("../alertsystem/alertService");
 const {
   insertChat,
   fetchAllActiveAlumini,
@@ -136,6 +137,22 @@ module.exports = {
             });
           }
 
+          const alertData = {
+            title: "New Post",
+            message: title || description, // show title if exists
+            role: "alumini", // or "student" based on your logic
+            type: "post",
+          };
+
+          createAlert(alertData, (alertErr, alert) => {
+            if (alertErr) {
+              console.error("Alert creation failed:", alertErr);
+            } else {
+              //  SEND REAL-TIME ALERT
+              req.io.emit("new_alert", alert);
+            }
+          });
+
           // Step 2: Emit socket event (optional)
           req.io.emit("new-post", {
             postId,
@@ -174,9 +191,6 @@ module.exports = {
       return res.status(200).json({ success: 1, data: result });
     });
   },
-
-
-
 
   getAllAluminiEventPost: (req, res) => {
     const { alum_id } = req.body;
@@ -738,8 +752,7 @@ module.exports = {
     }
   },
 
-
-    getAllAluminiPostDetail: (req, res) => {
+  getAllAluminiPostDetail: (req, res) => {
     getAllAluminiPostDetail((err, result) => {
       if (err) return res.status(500).json({ success: 0, message: "DB error" });
       if (result?.length === 0)
@@ -749,8 +762,8 @@ module.exports = {
       return res.status(200).json({ success: 1, data: result });
     });
   },
-    getAllAluminiEvents: (req, res) => {
-    getAllAluminiEvents( (err, result) => {
+  getAllAluminiEvents: (req, res) => {
+    getAllAluminiEvents((err, result) => {
       if (err) return res.status(500).json({ success: 0, message: "DB error" });
       if (result?.length === 0)
         return res
@@ -760,5 +773,3 @@ module.exports = {
     });
   },
 };
-
-

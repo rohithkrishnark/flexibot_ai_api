@@ -27,6 +27,7 @@ const adminRoutes = require("./api/admin/admin.router");
 const studentroute = require("./api/Student/student.router");
 const chatroute = require("./api/Chatbot/chatbot.router");
 const aluminiroute = require("./api/alumini/alumini.router");
+const alertnotification = require("./api/alertsystem/alertRoutes");
 const socketMiddleware = require("../flexibot_ai_api/MiddleWare/socke.middlewar");
 const routeTrackerMiddleware = require("./MiddleWare/routeTracker.middleware");
 
@@ -62,6 +63,14 @@ app.use(
   routeTrackerMiddleware("ALUMINI_ACTIVITY_ROUTE"),
   socketMiddleware,
   aluminiroute,
+);
+
+
+app.use(
+  "/api/alertnotify",
+  routeTrackerMiddleware("NOTIFICATION_ROUTE"),
+  socketMiddleware,
+  alertnotification,
 );
 // health check
 app.get("/health", (_, res) => res.send("OK"));

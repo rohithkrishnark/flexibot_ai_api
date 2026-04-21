@@ -545,6 +545,22 @@ module.exports = {
       },
     );
   },
+  getAllTheEnquiry: (callback) => {
+    pool.query(
+      `
+    SELECT * FROM contact_messages ORDER BY created_at DESC
+    `,
+      [],
+      (error, results) => {
+        if (error) {
+          console.error("DB getAllProgramYear error:", error);
+          return callback(error, null);
+        }
+        return callback(null, results);
+      },
+    );
+  },
+  
 
   deleteAlerts: (id, callback) => {
     pool.query(
