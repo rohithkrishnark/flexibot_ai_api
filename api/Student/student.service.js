@@ -408,6 +408,7 @@ where st.std_dep_id= ? and st.std_status = 1 ORDER BY created_at DESC`,
     SELECT 
       c.receiver_id,
       c.receiver_type,
+      c.created_at,
 
       -- Alumni
       a.alum_name,
@@ -464,7 +465,7 @@ where st.std_dep_id= ? and st.std_status = 1 ORDER BY created_at DESC`,
       },
     );
   },
- rejectActivity: (data, callback) => {
+  rejectActivity: (data, callback) => {
     const { reject_reason, user_id, activity_id } = data;
     pool.query(
       `UPDATE student_activities
@@ -477,7 +478,6 @@ where st.std_dep_id= ? and st.std_status = 1 ORDER BY created_at DESC`,
       },
     );
   },
-  
 
   EditSkillService: (data, callback) => {
     pool.query(
@@ -490,5 +490,111 @@ where st.std_dep_id= ? and st.std_status = 1 ORDER BY created_at DESC`,
         callback(null, result);
       },
     );
+  },
+
+  insertFacDocuments: (data, callback) => {
+    const sql = `
+    INSERT INTO documents 
+    (title, description,department_id, program_id, program_year, uploaded_by)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+    const values = [
+      data.title,
+      data.description,
+      data.department_id,
+      data.program_id,
+      data.program_year,
+      data.uploaded_by,
+    ];
+
+    pool.query(sql, values, (err, result) => {
+      if (err) return callback(err);
+
+      //  RETURN ONLY document_id
+      callback(null, {
+        document_id: result.insertId,
+      });
+    });
+  },
+
+  getDocumentsByUploadedBy: (uploaded_by, callback) => {
+    const sql = `
+    SELECT 
+      d.document_id,
+      d.title,
+      d.description,
+      d.department_id,
+      dep.dep_name AS department_name,
+
+      d.program_id,
+      pm.program_name,
+
+      d.program_year,
+      pmd.program_year_name,
+
+      d.uploaded_by,
+      d.created_at
+
+    FROM documents d
+
+    LEFT JOIN department_master dep 
+      ON dep.dep_id = d.department_id
+
+    LEFT JOIN program_master pm 
+      ON pm.program_id = d.program_id
+
+    LEFT JOIN program_master_detail pmd 
+      ON pmd.prgm_mast_dtl_slno = d.program_year
+
+    WHERE d.uploaded_by = ?
+
+    ORDER BY d.document_id DESC
+  `;
+
+    pool.query(sql, [uploaded_by], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  },
+
+  getAllDepartmentDocuments: (department_id, callback) => {
+    const sql = `
+    SELECT 
+      d.document_id,
+      d.title,
+      d.description,
+      d.department_id,
+      dep.dep_name AS department_name,
+
+      d.program_id,
+      pm.program_name,
+
+      d.program_year,
+      pmd.program_year_name,
+
+      d.uploaded_by,
+      d.created_at
+
+    FROM documents d
+
+    LEFT JOIN department_master dep 
+      ON dep.dep_id = d.department_id
+
+    LEFT JOIN program_master pm 
+      ON pm.program_id = d.program_id
+
+    LEFT JOIN program_master_detail pmd 
+      ON pmd.prgm_mast_dtl_slno = d.program_year
+
+    WHERE d.department_id = ?
+
+    ORDER BY d.document_id DESC
+  `;
+
+    pool.query(sql, [department_id], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
   },
 };

@@ -30,6 +30,7 @@ const {
   getAdminAlert,
   deleteAlerts,
   loginAdminDetail,
+  getAllTheEnquiry,
 } = require("./admin.controller");
 const {
   uploadTrainingPDF,
@@ -97,7 +98,7 @@ router.post("/alert/insert", insertAlertDetail);
 router.get("/alert/get", getAdminAlert);
 router.post("/alert/delete", deleteAlerts);
 
-
+router.get("/alert/enquiry", getAllTheEnquiry);
 
 router.post('/login',loginAdminDetail)
 

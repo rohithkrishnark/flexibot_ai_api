@@ -3,6 +3,7 @@ const path = require("path");
 const POST_UPLOAD_DIR = "C:/uploads/student-posts";
 const ACTIVITY_UPLOAD_DIR = "C:/uploads/student-activity";
 const PROFILE_UPLOAD_DIR = "C:/uploads/student-profile";
+const BASE_UPLOAD_DIR = "C:/uploads/faculity-document";
 
 /**
  * UPLOAD POST MEDIA (IMAGE/VIDEO)
@@ -408,8 +409,139 @@ const getMyProfilePhoto = (req, res) => {
   });
 };
 
+const getFaculityDocumentsByFaculty = (req, res) => {
+  try {
+    const { faculty_id } = req.params;
 
+    if (!faculty_id) {
+      return res.status(400).json({
+        success: 0,
+        message: "faculty_id is required",
+      });
+    }
 
+    const facultyDir = path.join(BASE_UPLOAD_DIR, String(faculty_id));
+
+    // ❌ If no folder
+    if (!fs.existsSync(facultyDir)) {
+      return res.status(200).json({
+        success: 1,
+        message: "No documents found",
+        data: [],
+      });
+    }
+
+    let allDocuments = [];
+
+    // 🔁 Loop departments
+    const departmentFolders = fs
+      .readdirSync(facultyDir)
+      .filter((f) => fs.statSync(path.join(facultyDir, f)).isDirectory());
+
+    departmentFolders.forEach((depId) => {
+      const depDir = path.join(facultyDir, depId);
+
+      //  Loop documents
+      const documentFolders = fs
+        .readdirSync(depDir)
+        .filter((f) => fs.statSync(path.join(depDir, f)).isDirectory());
+
+      documentFolders.forEach((docId) => {
+        const docDir = path.join(depDir, docId);
+
+        const files = fs.readdirSync(docDir).map((file) => ({
+          type: "pdf",
+          filename: file,
+          path: `/uploads/faculity-document/${faculty_id}/${depId}/${docId}/${file}`,
+        }));
+
+        allDocuments.push({
+          department_id: Number(depId),
+          document_id: Number(docId),
+          files,
+        });
+      });
+    });
+
+    return res.status(200).json({
+      success: 1,
+      message: "All faculty documents fetched",
+      data: allDocuments,
+    });
+  } catch (error) {
+    console.error("getFaculityDocumentsByFaculty error:", error);
+    return res.status(500).json({
+      success: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const getAllFaculityDocuemntDetailByDep = (req, res) => {
+  try {
+    const { depid } = req.params;
+
+    if (!depid) {
+      return res.status(400).json({
+        success: 0,
+        message: "depid is required",
+      });
+    }
+
+    if (!fs.existsSync(BASE_UPLOAD_DIR)) {
+      return res.status(200).json({
+        success: 1,
+        message: "No documents found",
+        data: [],
+      });
+    }
+
+    let allDocuments = [];
+
+    const facultyFolders = fs
+      .readdirSync(BASE_UPLOAD_DIR)
+      .filter((f) => fs.statSync(path.join(BASE_UPLOAD_DIR, f)).isDirectory());
+
+    facultyFolders.forEach((faculty_id) => {
+      const depDir = path.join(BASE_UPLOAD_DIR, faculty_id, depid);
+
+      if (!fs.existsSync(depDir)) return;
+
+      const documentFolders = fs
+        .readdirSync(depDir)
+        .filter((f) => fs.statSync(path.join(depDir, f)).isDirectory());
+
+      documentFolders.forEach((docId) => {
+        const docDir = path.join(depDir, docId);
+
+        const files = fs.readdirSync(docDir).map((file) => ({
+          type: "pdf",
+          filename: file,
+          path: `/uploads/faculity-document/${faculty_id}/${depid}/${docId}/${file}`,
+        }));
+
+        allDocuments.push({
+          faculty_id: Number(faculty_id),
+          department_id: Number(depid),
+          document_id: Number(docId),
+          files,
+        });
+      });
+    });
+
+    return res.status(200).json({
+      success: 1,
+      message: "Department documents fetched",
+      data: allDocuments,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: 0,
+      message: "Something went wrong",
+    });
+  }
+};
 const getAllStudentsActivities = (req, res) => {
   const baseDir = path.join(ACTIVITY_UPLOAD_DIR);
 
@@ -434,9 +566,7 @@ const getAllStudentsActivities = (req, res) => {
 
     const postFolders = fs
       .readdirSync(studentDir)
-      .filter((f) =>
-        fs.statSync(path.join(studentDir, f)).isDirectory()
-      );
+      .filter((f) => fs.statSync(path.join(studentDir, f)).isDirectory());
 
     // 🔥 LOOP POSTS
     postFolders.forEach((postId) => {
@@ -498,5 +628,7 @@ module.exports = {
   getAllStudentActivities,
   uploadProfilePicture,
   getMyProfilePhoto,
-  getAllStudentsActivities
+  getAllStudentsActivities,
+  getFaculityDocumentsByFaculty,
+  getAllFaculityDocuemntDetailByDep,
 };

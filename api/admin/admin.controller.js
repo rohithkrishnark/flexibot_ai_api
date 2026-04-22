@@ -33,6 +33,7 @@ const {
   getAdminAlert,
   deleteAlerts,
   findAdminByUserName,
+  getAllTheEnquiry,
 } = require("./admin.service");
 
 module.exports = {
@@ -1098,6 +1099,31 @@ module.exports = {
       });
     });
   },
+ getAllTheEnquiry: (req, res) => {
+    getAllTheEnquiry((error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: "Something went wrong.Database Error",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(200).json({
+          success: 2,
+          message: "No Data found",
+          data: [],
+        });
+      }
+      return res.status(200).json({
+        success: 1,
+        message: "Inserted Successfully",
+        data: result,
+      });
+    });
+  },
+  
+
   deleteAlerts: (req, res) => {
     const data = req.body;
     const { id } = data;
@@ -1149,41 +1175,6 @@ module.exports = {
           });
         }
 
-        // bcrypt.compare(password, user.password, (err, match) => {
-        //   if (err) {
-        //     console.error("bcrypt compare error:", err);
-        //     return res.status(500).json({
-        //       success: 0,
-        //       message: "Something went wrong",
-        //     });
-        //   }
-
-        //   if (!match) {
-        //     return res.status(401).json({
-        //       success: 0,
-        //       message: "Invalid email or password",
-        //     });
-        //   }
-
-        //   // Optional socket event
-        //   if (req.io) {
-        //     req.io.emit("login-event", {
-        //       message: `${user.user_name} logged in`,
-        //     });
-        //   }
-
-        //   return res.status(200).json({
-        //     success: 1,
-        //     message: "Login successful",
-        //     data: {
-        //       user_id: user.user_id,
-        //       user_name: user.user_name,
-        //       user_email: user.user_email,
-        //       role: "user",
-        //     },
-        //   });
-        // });
-
         return res.status(200).json({
           success: 1,
           message: "Login successful",
@@ -1195,6 +1186,7 @@ module.exports = {
           },
         });
       });
+
     } catch (error) {
       console.error("loginUserDetail error:", error);
       return res.status(500).json({
