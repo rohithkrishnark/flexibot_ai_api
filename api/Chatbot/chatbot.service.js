@@ -203,14 +203,17 @@ ORDER BY c.last_message_at DESC
 
 
 
- getRecentchant: (callback) => {
+ getRecentchant: (userid,callback) => {
     pool.query(
       `SELECT *
-        FROM flexi_bot_ai.chatbot_messages
+        FROM chatbot_messages
+        where user_id = ?
         ORDER BY id DESC
         LIMIT 9
     `,
-      [],
+      [
+        userid
+      ],
       (err, result) => {
         if (err) return callback(err);
         return callback(null, result);

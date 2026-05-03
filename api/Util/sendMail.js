@@ -26,23 +26,4 @@ const sendMail = async (to, subject, htmlContent) => {
 
 module.exports = sendMail;
 
-// const htmlTemplate = `
-//   <div style="font-family: Arial; padding:20px;">
-//     <h1 style="color:#13163c;">Welcome ${alum_name}</h1>
-//     <p>Your alumni registration was successful.</p>
-//     <hr/>
-//     <small>Training Portal Team</small>
-//   </div>
-// `;
 
-// const htmlTemplate = `
-//       <h2>Welcome ${alum_name} 🎉</h2>
-//       <p>Your alumni profile has been successfully registered.</p>
-//       <p>Thank you for joining us.</p>
-//     `;
-
-//     await sendMail(
-//       alum_email,
-//       "Welcome to Alumni Portal",
-//       htmlTemplate
-//     );

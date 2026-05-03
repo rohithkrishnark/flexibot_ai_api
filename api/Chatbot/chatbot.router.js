@@ -18,6 +18,6 @@ router.get("/messages", getChatMessagesController);
 router.get("/users/:user_id", getChatUsersController);
 
 
-router.get('/recentchat',getRecentchant)
+router.post('/recentchat',getRecentchant)
 
 module.exports = router;
