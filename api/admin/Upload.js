@@ -7,11 +7,7 @@ const BASE_UPLOAD_DIR = "C:/uploads/faculity-document";
  * UPLOAD PDF FILES
  */
 const uploadTrainingPDF = (req, res) => {
-  upload.array("files", 10)(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
-    }
-
+  try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
@@ -22,12 +18,15 @@ const uploadTrainingPDF = (req, res) => {
       path: file.path,
     }));
 
-    res.status(200).json({
+    return res.status(200).json({
       success: 1,
       message: "PDF uploaded successfully",
       files,
     });
-  });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Upload failed" });
+  }
 };
 
 const uploadFaculityDocuments = (req, res) => {

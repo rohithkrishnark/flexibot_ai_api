@@ -233,8 +233,9 @@ module.exports = {
     }
   },
   getRecentchant: (req, res) => {
+    const {userid} = req.body;
     try {
-      getRecentchant((err, conversation) => {
+      getRecentchant(userid,(err, conversation) => {
         if (err) {
           return res.status(500).json({
             success: 0,
